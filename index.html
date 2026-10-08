@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://script.google.com https://*.googleusercontent.com; base-uri 'none'; form-action 'none'">
-<title>MS JOB Tracking</title>
+<title>Form2Chat</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef1f6;--card:#fff;--ink:#111827;--mut:#667085;--line:#d3d9e4;--acc:#2f4bff;--accink:#fff;--soft:#e3e8ff;--danger:#c2300f;--bar:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -74,6 +74,8 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,8);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const DEFAULT_URL='https://script.google.com/macros/s/AKfycby7xtHAya9P0My5q8AydT-Or6-0e6qQ2InAdB60ycnJ3CDokZLbIAcv81fSHACE0Fqewg/exec';
+const gcfg=()=>{const g=store.get('f2c_g',{});return Object.assign({},g,{url:g.url||DEFAULT_URL})};
 const TYPES={text:'Short text',long:'Long text',number:'Number',date:'Date',time:'Time',select:'Dropdown',check:'Yes / No'};
 const F=(label,type,o={})=>Object.assign({id:uid(),label,type,req:false,opts:''},o);
 const defaults=()=>[
@@ -236,7 +238,7 @@ function viewJob(){
  ${tpl()?`<label class="chk"><input type="checkbox" id="incl" ${S.incl?'checked':''}> Add the "${esc(tpl().name)}" form message</label>`:''}
  <div class="row" style="margin-top:6px"><button class="line" data-act="jsend" data-k="line">Send to LINE</button><button class="wa" data-act="jsend" data-k="wa">WhatsApp</button></div>
  <div class="row" style="margin-top:8px"><button data-act="jsend" data-k="copy">Copy text</button>${navigator.share?'<button data-act="jsend" data-k="more">More…</button>':''}<button data-act="newjob">New job</button></div></div>`;
- const g=store.get('f2c_g',{});
+ const g=gcfg();
  h+=`<div class="card"><h2>Google Sheet</h2><p class="sub" style="margin:0 0 10px">Keeps one row per job. Tap again after each new step to refresh that row.</p>
  <div class="row"><button class="pri" data-act="sheet">Update Google Sheet</button><button data-act="rowcopy">Copy row</button></div>
  ${S.slink?`<div class="frow" style="margin-top:10px"><p class="sub" style="margin:0 0 8px">Link ready. If no tab opened, tap Open link, or copy it and paste it into your phone browser address bar.</p><div class="row"><a class="btn" href="${esc(S.slink)}" target="_blank" rel="noopener">Open link</a><button data-act="lcopy">Copy link</button></div><textarea readonly rows="3" style="margin-top:8px;font-size:13px" aria-label="Link">${esc(S.slink)}</textarea></div>`:''}
@@ -324,7 +326,7 @@ function fillUrl(t,vals){
  return m[1]+'?'+ps.join('&')+(m[3]||'')}
 async function hmac(key,msg){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(key),{name:'HMAC',hash:'SHA-256'},false,['sign']);const b=await crypto.subtle.sign('HMAC',k,new TextEncoder().encode(msg));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function toSheet(test){
- const g=store.get('f2c_g',{}),j=S.job;
+ const g=gcfg(),j=S.job;
  if(!g.url)return toast('Add your Web app URL in Sheet settings');
  if(!/\/exec(\?|$)/.test(g.url))return toast('The URL must end with /exec');
  if(!g.key||g.key==='change-me')return toast('Set your own secret key in the app and in the script');
